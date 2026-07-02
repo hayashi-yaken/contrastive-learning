@@ -1,0 +1,18 @@
+track: graph
+geometry: HYP
+score: HYP-inner        # sweep {EUC, HYP-dist, HYP-dist2, HYP-inner} via run_matrix
+dim: 64
+tau: 0.1
+c: 1.0
+learnable_c: false
+max_tangent_norm: 5.0
+anchor_weight: 0.0
+lr: 0.05
+weight_decay: 0.0
+grad_clip: 1.0
+epochs: 50
+batch_size: 512
+num_negatives: 50
+max_synsets: 0
+optimizer: adamw
+seed: 0

@@ -1,0 +1,21 @@
+track: encoder
+geometry: HYP
+score: HYP-inner
+dim: 64
+tau: 0.05
+c: 1.0
+learnable_c: false      # flip to true for the learnable-curvature arm
+max_tangent_norm: 5.0
+anchor_weight: 0.0
+lr: 3.0e-5
+weight_decay: 0.01
+grad_clip: 1.0
+epochs: 3
+batch_size: 128
+num_negatives: 50
+model_name: bert-base-uncased
+pooling: cls
+max_synsets: 0
+optimizer: adamw
+seed: 0
+max_length: 64

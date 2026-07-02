@@ -1,0 +1,31 @@
+[project]
+name = "hypsimcse"
+version = "0.1.0"
+description = "Hyperbolic SimCSE: contrastive sentence embeddings on the Lorentz model"
+requires-python = ">=3.11"
+dependencies = [
+    "torch>=2.1",
+    "transformers>=4.40",
+    "nltk>=3.8",
+    "geoopt>=0.5",
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "pyyaml>=6.0",
+    "matplotlib>=3.7",
+    "datasets>=2.14",
+    "tqdm>=4.66",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

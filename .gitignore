@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+data/cache/
+results/
+runs/
+figures/
+.DS_Store
+nltk_data/

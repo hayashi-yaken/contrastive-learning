@@ -32,6 +32,10 @@ dependencies:
   - transformers>=4.40
   - datasets>=2.14
   - nltk>=3.8
+  # 新しい transformers(5.x) は tokenizer.json を持たないモデルの slow->fast 変換に
+  # sentencepiece / tiktoken を要求する（例: prajjwal1/bert-tiny, 一部の BERT 系）。
+  - sentencepiece
+  - tiktoken
   - pytest>=7.0
   # --- conda-forge に無いものだけ pip ---
   - pip

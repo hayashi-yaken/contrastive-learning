@@ -1,0 +1,31 @@
+# GPU (CUDA) 環境用の mamba/conda 定義。
+# 使い方:
+#   mamba env create -f environment.yml
+#   mamba activate hypsimcse
+#   pip install -e ".[dev]"          # geoopt / transformers / datasets などを取得
+#   python scripts/download_data.py  # WordNet + STS-B
+#   pytest -q                        # 健全性チェック
+#
+# 方針: conda-forge で Python と科学計算の土台を入れ、
+#       PyTorch(+CUDA) と ML 系(transformers/datasets/geoopt/nltk) は pip に任せる。
+#       Linux では PyPI の torch wheel が既定で CUDA 版なので、pip install だけで GPU が使えます。
+name: hypsimcse
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  # 科学計算の土台（conda-forge のビルドを使う）
+  - numpy>=1.24
+  - scipy>=1.10
+  - matplotlib>=3.7
+  - pyyaml>=6.0
+  - tqdm>=4.66
+  - pytest>=7.0
+  # PyTorch と ML 系は pip（CUDA wheel を確実に引くため）
+  - pip:
+      - torch>=2.1          # Linux では既定で CUDA 版。CPU/特定CUDAは下記メモ参照
+      - transformers>=4.40
+      - datasets>=2.14
+      - nltk>=3.8
+      - geoopt>=0.5         # PyPI のみ（conda には無い）

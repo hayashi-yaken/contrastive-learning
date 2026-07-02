@@ -18,8 +18,11 @@ channels:
 dependencies:
   - python=3.12
   # --- PyTorch(GPU) を conda-forge から。CUDA ランタイムも conda が用意する ---
-  - pytorch-gpu>=2.1        # CPU only にしたい場合は pytorch-cpu に変更
+  # パッケージ名は "pytorch"。build を cuda* に固定して CUDA ビルドを強制する
+  # （動作実績のある環境と同じ入れ方。pytorch-gpu という名前は使わない）。
+  - pytorch=*=cuda*
   # - cuda-version=13       # ドライバに合わせて CUDA を固定したい時だけ有効化
+  # CPU only にしたい場合は上を  - pytorch=*=cpu*  に変更
   # --- 科学計算・ML 系（すべて conda-forge） ---
   - numpy>=1.24
   - scipy>=1.10

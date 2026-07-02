@@ -1,6 +1,7 @@
 """Run one ExperimentConfig end-to-end: train + eval -> JSON result."""
 import argparse
 import json
+import os
 import random
 import torch
 from hypsimcse.training.config import ExperimentConfig
@@ -99,6 +100,9 @@ def main():
     result = run_experiment(cfg, full_hierarchy=args.full_hierarchy)
     text = json.dumps(result, indent=2)
     if args.out:
+        out_dir = os.path.dirname(args.out)
+        if out_dir:
+            os.makedirs(out_dir, exist_ok=True)
         with open(args.out, "w") as f:
             f.write(text)
         print(f"wrote {args.out}")

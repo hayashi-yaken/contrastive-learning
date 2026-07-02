@@ -4,6 +4,8 @@ Contrastive sentence embeddings on the Lorentz model of hyperbolic space,
 tested on WordNet noun hypernymy. See `docs/superpowers/plans/` for the plan
 and the experiment spec.
 
+> 日本語ドキュメント: [README.ja.md](README.ja.md) ／ [docs/ja/設計と実験ガイド.md](docs/ja/設計と実験ガイド.md)
+
 ## Setup
     uv venv && source .venv/bin/activate   # or python -m venv
     uv pip install -e ".[dev]"

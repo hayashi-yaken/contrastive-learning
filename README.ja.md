@@ -15,12 +15,24 @@ WordNet 名詞の上位下位（hypernymy）関係という階層データを、
 
 ## セットアップ
 
-    uv venv && source .venv/bin/activate   # もしくは python -m venv
-    uv pip install -e ".[dev]"
-    python scripts/download_data.py        # WordNet + STS-B の取得
+### GPU（CUDA）環境 — mamba/conda 推奨
 
-※ 本リポジトリはすでに system Python（pyenv 3.13, torch 2.11 / transformers 4.46）へ
-editable install 済みで動作確認されています。新規に環境を作る場合のみ上記を実行してください。
+    mamba env create -f environment.yml
+    mamba activate hypsimcse
+    pip install -e . --no-deps        # hypsimcse 本体のみ（依存は conda が用意済み）
+    python scripts/download_data.py   # WordNet + STS-B
+    pytest -q                         # 全69テスト確認
+
+`environment.yml` は geoopt 以外をすべて conda-forge から入れます（PyTorch も conda-forge）。
+これにより libstdc++/CUDA が環境内で一貫して解決され、古い OS で
+`CXXABI_x.x.x not found` になる問題を回避します。作り直しは `mamba env remove -n hypsimcse`
+してから再作成してください。
+
+### CPU / お試し（venv でも可）
+
+    python -m venv .venv && source .venv/bin/activate
+    pip install -e ".[dev]"
+    python scripts/download_data.py
 
 ## テスト
 

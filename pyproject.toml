@@ -5,7 +5,7 @@ description = "Hyperbolic SimCSE: contrastive sentence embeddings on the Lorentz
 requires-python = ">=3.11"
 dependencies = [
     "torch>=2.1",
-    "transformers>=4.40",
+    "transformers>=4.40,<5",
     "sentencepiece>=0.1.99",
     "tiktoken>=0.5",
     "nltk>=3.8",

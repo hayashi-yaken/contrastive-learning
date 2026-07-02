@@ -29,7 +29,9 @@ dependencies:
   - matplotlib-base>=3.7
   - pyyaml>=6.0
   - tqdm>=4.66
-  - transformers>=4.40
+  # transformers は検証済みの 4.x 系に固定。5.x はトークナイザ実装が作り直され、
+  # tokenizer.json を持たないモデルで backend 生成に失敗する（本コードは 4.46 で検証）。
+  - transformers>=4.40,<5
   - datasets>=2.14
   - nltk>=3.8
   # 新しい transformers(5.x) は tokenizer.json を持たないモデルの slow->fast 変換に

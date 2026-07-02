@@ -15,6 +15,11 @@ channels:
 dependencies:
   - python=3.11
   - pip
+  # C++ ランタイム。古い OS(/lib64 の libstdc++ が古い)でも scipy/matplotlib の
+  # ネイティブ拡張(CXXABI_1.3.15 要求)が動くよう、新しい libstdc++ を環境に同梱する。
+  # これが無い/古いと `CXXABI_1.3.15 not found` で import に失敗する。
+  - libstdcxx-ng>=13
+  - libgcc-ng>=13
   # 科学計算の土台（conda-forge のビルドを使う）
   - numpy>=1.24
   - scipy>=1.10

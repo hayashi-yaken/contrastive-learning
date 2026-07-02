@@ -3,6 +3,7 @@ import argparse
 import json
 import os
 from hypsimcse.training.config import ExperimentConfig
+from hypsimcse.training.logutil import log
 from run import run_experiment  # same directory
 
 
@@ -24,20 +25,23 @@ def main():
     dims = args.dims or [base.dim]
     scores = args.scores or [base.score]
     taus = args.taus or [base.tau]
-    for dim in dims:
-        for score in scores:
-            for tau in taus:
-                for seed in args.seeds:
-                    cfg = ExperimentConfig(**base.to_dict())
-                    cfg.dim, cfg.tau, cfg.seed = dim, tau, seed
-                    cfg.score = score
-                    cfg.geometry = "EUC" if score == "EUC" else "HYP"
-                    tag = f"d{dim}_{score}_tau{tau}_s{seed}"
-                    res = run_experiment(cfg, full_hierarchy=args.full_hierarchy)
-                    path = os.path.join(args.outdir, f"{tag}.json")
-                    with open(path, "w") as f:
-                        json.dump(res, f, indent=2)
-                    print(f"wrote {path}")
+    cells = [(d, sc, t, se) for d in dims for sc in scores
+             for t in taus for se in args.seeds]
+    total = len(cells)
+    log(f"matrix: {total} cells "
+        f"(dims={dims} scores={scores} taus={taus} seeds={args.seeds})")
+    for i, (dim, score, tau, seed) in enumerate(cells, start=1):
+        cfg = ExperimentConfig(**base.to_dict())
+        cfg.dim, cfg.tau, cfg.seed = dim, tau, seed
+        cfg.score = score
+        cfg.geometry = "EUC" if score == "EUC" else "HYP"
+        tag = f"d{dim}_{score}_tau{tau}_s{seed}"
+        log(f"=== cell {i}/{total}: {tag} ===")
+        res = run_experiment(cfg, full_hierarchy=args.full_hierarchy)
+        path = os.path.join(args.outdir, f"{tag}.json")
+        with open(path, "w") as f:
+            json.dump(res, f, indent=2)
+        log(f"wrote {path}  ({i}/{total} cells done)")
 
 
 if __name__ == "__main__":

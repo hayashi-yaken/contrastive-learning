@@ -19,6 +19,7 @@ from hypsimcse.eval import fisher as FI
 from hypsimcse.eval import hierarchy as HI
 from hypsimcse.eval import dual_coords as DC
 from hypsimcse.models.encoder_model import encode_texts
+from hypsimcse.training.logutil import log
 
 
 def _all_embeddings(model, data, cfg, device):
@@ -31,32 +32,44 @@ def _all_embeddings(model, data, cfg, device):
 
 def run_experiment(config, device=None, full_hierarchy=False):
     device = device or get_device()
+    log(f"device={device} | loading WordNet (max_synsets={config.max_synsets or 'all'})")
     set_seed(config.seed)
     W.ensure_wordnet()
     data = W.load_noun_hypernymy(max_synsets=(config.max_synsets or None))
+    log(f"data ready: {len(data.synsets)} synsets, "
+        f"{len(data.closure_edges)} closure edges")
 
     model = T.build_model(config, data, device)
     tr = T.Trainer(config, data, model, device)
     train_logs = tr.train()
 
+    log("training done | computing embeddings for evaluation")
     emb = _all_embeddings(model, data, config, device)
     c = model.curvature()
     result = {"config": config.to_dict(), "train_logs": train_logs,
               "curvature": c, "device": device}
 
+    log("eval: graph statistics (Gromov delta, depth, branching)")
     result["data_stats"] = GS.summarize(data, num_samples=1000, seed=config.seed)
 
     rng = random.Random(config.seed)
     recon_edges = SP.reconstruction_split(data)["edges"]
     sample = recon_edges if len(recon_edges) <= 20000 else rng.sample(recon_edges, 20000)
+    log(f"eval: reconstruction (ranking {len(sample)} edges)")
     result["reconstruction"] = R.reconstruction_metrics(
         emb, sample, data, config.num_negatives, config.score, c=c, seed=config.seed)
+    log(f"  reconstruction MAP={result['reconstruction']['MAP']:.4f} "
+        f"mean_rank={result['reconstruction']['mean_rank']:.2f}")
 
     lp = SP.link_prediction_split(data, seed=config.seed)
     test = lp["test"] if len(lp["test"]) <= 20000 else rng.sample(lp["test"], 20000)
+    log(f"eval: link prediction ({len(test)} held-out edges)")
     result["link_prediction"] = LP.link_prediction_metrics(
         emb, test, data, config.num_negatives, config.score, c=c, seed=config.seed)
+    log(f"  link prediction MAP={result['link_prediction']['MAP']:.4f} "
+        f"AUC={result['link_prediction']['AUC']:.4f}")
 
+    log("eval: Fisher collapse diagnostics + norm-vs-depth + embedding delta")
     result["fisher"] = FI.fisher_eigenvalues(emb, c=c)
     nd = HI.norm_depth_correlation(emb, data, c=c)
     if full_hierarchy:
@@ -73,14 +86,17 @@ def run_experiment(config, device=None, full_hierarchy=False):
         result["dual_gap"] = None
 
     if config.track == "encoder":
+        log("eval: inductive generalization on unseen synsets")
         isplit = SP.inductive_split(data, seed=config.seed)
         result["inductive"] = IND.inductive_metrics(
             model, model.tokenizer, data, isplit, config.num_negatives,
             config.score, device=device, c=c, seed=config.seed)
         pairs, gold = STS.load_stsb_validation()
         if pairs:
+            log("eval: STS-B Spearman")
             result["sts"] = STS.sts_spearman(model, model.tokenizer, pairs, gold,
                                              config.score, device=device, c=c)
+    log("experiment complete")
     return result
 
 

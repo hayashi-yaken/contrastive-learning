@@ -1,10 +1,12 @@
 """Config-driven trainer with MERU-style stabilization. One loop serves all
 tracks; only positive-pair construction and the model differ."""
+import math
 import random
 import torch
 from ..losses import infonce as Iloss
 from ..models.graph_embedding import GraphEmbedding
 from ..models.encoder_model import SentenceEncoder
+from .logutil import log
 
 
 def build_model(config, data, device):
@@ -72,6 +74,12 @@ class Trainer:
 
     def train(self):
         logs = []
+        n_edges = len(self._edges())
+        total_batches = max(1, math.ceil(n_edges / self.cfg.batch_size))
+        log_every = getattr(self.cfg, "log_every", 50)
+        log(f"train start: track={self.cfg.track} geometry={self.cfg.geometry} "
+            f"score={self.cfg.score} dim={self.cfg.dim} tau={self.cfg.tau} "
+            f"epochs={self.cfg.epochs} batches/epoch={total_batches}")
         for epoch in range(self.cfg.epochs):
             self.model.train()
             edges = self._edges()
@@ -99,7 +107,14 @@ class Trainer:
                 for k, v in parts.items():
                     parts_acc[k] = parts_acc.get(k, 0.0) + v
                 n_batches += 1
+                if log_every and n_batches % log_every == 0:
+                    log(f"  epoch {epoch + 1}/{self.cfg.epochs} "
+                        f"batch {n_batches}/{total_batches} "
+                        f"loss={running / n_batches:.4f}"
+                        + (f" skipped={skipped}" if skipped else ""))
             avg = running / max(n_batches, 1)
+            log(f"epoch {epoch + 1}/{self.cfg.epochs} done: loss={avg:.4f} "
+                f"skipped={skipped}")
             logs.append({"epoch": epoch, "loss": avg, "skipped": skipped,
                          **{f"part_{k}": v / max(n_batches, 1) for k, v in parts_acc.items()}})
         return logs

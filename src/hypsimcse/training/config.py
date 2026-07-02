@@ -25,6 +25,7 @@ class ExperimentConfig:
     optimizer: str = "adamw"      # adamw | radam
     seed: int = 0
     max_length: int = 64
+    log_every: int = 50           # print a progress line every N batches (0 = off)
 
     def to_dict(self):
         return asdict(self)

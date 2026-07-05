@@ -28,6 +28,9 @@ class SentenceEncoder(nn.Module):
     def curvature(self):
         return self.head.curvature()
 
+    def curvature_tensor(self):
+        return self.head.curvature_tensor()
+
     def forward(self, input_ids, attention_mask):
         out = self.backbone(input_ids=input_ids, attention_mask=attention_mask)
         pooled = _pool(out.last_hidden_state, attention_mask, self.pooling)

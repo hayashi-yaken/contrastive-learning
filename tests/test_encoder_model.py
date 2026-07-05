@@ -22,6 +22,18 @@ def test_encoder_euc_shape():
     assert z.shape == (1, 5)
 
 
+def test_encoder_learnable_curvature_receives_gradient():
+    # Regression: E4 (encoder track) needs curvature_tensor() to flow gradients.
+    from hypsimcse.models.encoder_model import SentenceEncoder
+    model, tok = SentenceEncoder.build(MODEL, out_dim=5, geometry="HYP",
+                                       c=1.0, learnable_c=True)
+    batch = tok(["a dog", "a cat"], return_tensors="pt", padding=True)
+    z = model(batch["input_ids"], batch["attention_mask"])
+    z.sum().backward()
+    assert model.head.raw_c.grad is not None
+    assert model.head.raw_c.grad.abs().item() > 0
+
+
 def test_encode_texts_helper():
     from hypsimcse.models.encoder_model import SentenceEncoder, encode_texts
     model, tok = SentenceEncoder.build(MODEL, out_dim=5, geometry="HYP")

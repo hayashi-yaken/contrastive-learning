@@ -24,12 +24,19 @@ class GraphEmbedding(nn.Module):
             self.register_buffer("_c", torch.tensor(float(c)))
 
     def curvature(self):
+        """Python float — for reporting / evaluation."""
         if self.learnable_c:
             return Fn.softplus(self.raw_c).item()
         return float(self._c)
+
+    def curvature_tensor(self):
+        """Differentiable curvature for the forward/training path."""
+        if self.learnable_c:
+            return Fn.softplus(self.raw_c)
+        return self._c
 
     def forward(self, node_ids):
         v = self.table(node_ids)
         if self.geometry == "EUC":
             return v
-        return L.expmap0(v, c=self.curvature(), max_norm=self.max_tangent_norm)
+        return L.expmap0(v, c=self.curvature_tensor(), max_norm=self.max_tangent_norm)

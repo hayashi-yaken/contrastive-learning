@@ -22,7 +22,7 @@ def _pairwise_lorentz_inner(u, v):
 def _pairwise_dist(u, v, c=1.0, eps=L.EPS):
     inner = _pairwise_lorentz_inner(u, v)
     arg = torch.clamp(-c * inner, min=1.0 + eps)
-    return torch.arccosh(arg) / math.sqrt(c)
+    return torch.arccosh(arg) / L._sqrt(c)
 
 
 def pairwise_scores(u, v, label, c=1.0, eps=L.EPS):

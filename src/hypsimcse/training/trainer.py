@@ -94,7 +94,7 @@ class Trainer:
                 z_pos = self._embed(hypo) if self.cfg.track == "dropout" else self._embed(hyper)
                 loss, parts = Iloss.total_loss(
                     z, z_pos, self.cfg.score, self.cfg.tau,
-                    c=self.model.curvature(), anchor_weight=self.cfg.anchor_weight)
+                    c=self.model.curvature_tensor(), anchor_weight=self.cfg.anchor_weight)
                 if not torch.isfinite(loss):
                     skipped += 1
                     self.opt.zero_grad()

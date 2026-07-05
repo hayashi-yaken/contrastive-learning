@@ -50,3 +50,17 @@ def test_trainer_loss_decreases_graph():
     model = T.build_model(cfg, data, "cpu")
     logs = T.Trainer(cfg, data, model, "cpu").train()
     assert logs[-1]["loss"] < logs[0]["loss"]
+
+
+def test_learnable_curvature_updates():
+    # End-to-end: with learnable_c the curvature must actually move during
+    # training (regression for the detached-.item() bug that froze it at init).
+    W.ensure_wordnet()
+    data = W.load_noun_hypernymy(max_synsets=800)
+    cfg = _tiny_cfg(epochs=3, learnable_c=True)
+    set_seed(cfg.seed)
+    model = T.build_model(cfg, data, "cpu")
+    c0 = model.curvature()
+    T.Trainer(cfg, data, model, "cpu").train()
+    c1 = model.curvature()
+    assert abs(c1 - c0) > 1e-4

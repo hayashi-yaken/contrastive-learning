@@ -20,3 +20,13 @@ def test_learnable_c_positive():
     head = HyperbolicHead(in_dim=8, out_dim=5, geometry="HYP", learnable_c=True)
     assert head.curvature() > 0
     assert any(p.requires_grad for p in head.parameters())
+
+
+def test_learnable_curvature_receives_gradient():
+    # Regression test: the learnable curvature must actually get a gradient
+    # through the exp map (previously detached via .item(), so it never learned).
+    head = HyperbolicHead(in_dim=8, out_dim=5, geometry="HYP", learnable_c=True)
+    z = head(torch.randn(4, 8))
+    z.sum().backward()
+    assert head.raw_c.grad is not None
+    assert head.raw_c.grad.abs().item() > 0

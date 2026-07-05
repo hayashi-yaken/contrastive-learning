@@ -30,7 +30,7 @@ def _all_embeddings(model, data, cfg, device):
     return encode_texts(model, model.tokenizer, data.glosses, device=device)
 
 
-def run_experiment(config, device=None, full_hierarchy=False):
+def run_experiment(config, device=None, full_hierarchy=False, save_embeddings=None):
     device = device or get_device()
     log(f"device={device} | loading WordNet (max_synsets={config.max_synsets or 'all'})")
     set_seed(config.seed)
@@ -48,6 +48,22 @@ def run_experiment(config, device=None, full_hierarchy=False):
     c = model.curvature()
     result = {"config": config.to_dict(), "train_logs": train_logs,
               "curvature": c, "device": device}
+
+    if save_embeddings:
+        import numpy as np
+        from hypsimcse.data import graph_stats as _GS
+        out_dir = os.path.dirname(save_embeddings)
+        if out_dir:
+            os.makedirs(out_dir, exist_ok=True)
+        depth = _GS.depths(data)
+        np.savez_compressed(
+            save_embeddings,
+            embeddings=emb.detach().cpu().numpy(),          # (N, d+1) HYP / (N, d) EUC
+            names=np.array(data.synsets),
+            depths=np.array([depth.get(i, 0) for i in range(len(data.synsets))]),
+            geometry=config.geometry, score=config.score, curvature=c)
+        log(f"saved embeddings -> {save_embeddings} "
+            f"(shape {tuple(emb.shape)}, {len(data.synsets)} nodes)")
 
     log("eval: graph statistics (Gromov delta, depth, branching)")
     result["data_stats"] = GS.summarize(data, num_samples=1000, seed=config.seed)
@@ -106,6 +122,8 @@ def main():
     ap.add_argument("--seed", type=int, default=None)
     ap.add_argument("--max-synsets", type=int, default=None)
     ap.add_argument("--full-hierarchy", action="store_true")
+    ap.add_argument("--save-embeddings", default=None,
+                    help="学習後の埋め込み座標を .npz で保存するパス(可視化・最近傍分析用)")
     ap.add_argument("--out", default=None)
     args = ap.parse_args()
     cfg = ExperimentConfig.from_yaml(args.config)
@@ -113,7 +131,8 @@ def main():
         cfg.seed = args.seed
     if args.max_synsets is not None:
         cfg.max_synsets = args.max_synsets
-    result = run_experiment(cfg, full_hierarchy=args.full_hierarchy)
+    result = run_experiment(cfg, full_hierarchy=args.full_hierarchy,
+                            save_embeddings=args.save_embeddings)
     text = json.dumps(result, indent=2)
     if args.out:
         out_dir = os.path.dirname(args.out)
